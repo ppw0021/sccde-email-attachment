@@ -1,28 +1,20 @@
 {
-  "package-name": "Custom component package example",
+  "package-name": "Email attachment",
   "package-version": "0.1.0",
-  "package-uuid": "e6c1ea79-bd14-48da-8dd7-be3c0d1f4a2d",
-  "package-description": "Your package description here",
+  "package-uuid": "9e007e81-bb93-416c-bda7-3343938d2a97",
+  "package-description": "This package contains components that are capable of sending emails ",
   "python-components-source-dir": "source/python",
-  "author": "",
+  "author": "Declan Ross",
   "license": "",
   "license-file": "",
   "components": {
-    "9ca106c5-1543-4405-a0cd-1b6ff6191bb2": {
-      "name": "Sample collector",
-      "description": "",
+    "6e56afe5-c2c9-49f1-9b71-1220e7d4add9": {
+      "name": "Email Export Attachment (Dataflow)",
+      "description": "This component exports the CSV columns recieved in PORT2, when PORT1 is triggered.",
       "component-type": "python",
-      "modulename": "sample_collector_1",
+      "modulename": "email_attachment",
       "parameter-ui-type": "json",
-      "parameter-ui": "parameter_ui/sample_collector_1/custom_ui.json"
-    },
-    "ccacd2ed-b829-45cf-8b2c-f54f6a5e84b3": {
-      "name": "Sample collector",
-      "description": "",
-      "component-type": "python",
-      "modulename": "sample_collector_2",
-      "parameter-ui-type": "json",
-      "parameter-ui": "parameter_ui/sample_collector_2/custom_ui.json"
+      "parameter-ui": "parameter_ui/email_attachment/custom_ui.json"
     }
   }
 }
