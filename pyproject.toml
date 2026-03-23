@@ -1,0 +1,9 @@
+[project]
+name = "sccde-email-attachment"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "speedbeesynapse-sccde>=0.1.11",
+]

@@ -1,0 +1,26 @@
+{
+  "parameter_defines": [
+    {
+      "name": "interval_ms",
+      "label": "Interval(ms)",
+      "type": "number",
+      "require": true,
+      "max": 60000,
+      "default": 1000,
+      "layout": {
+        "col": 2
+      }
+    },
+    {
+      "name": "diff",
+      "label": "Increase amount",
+      "type": "number",
+      "require": true,
+      "max": 1000,
+      "default": 1,
+      "layout": {
+        "col": 4
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "package-name": "Custom component package example",
+  "package-version": "0.1.0",
+  "package-uuid": "e6c1ea79-bd14-48da-8dd7-be3c0d1f4a2d",
+  "package-description": "Your package description here",
+  "python-components-source-dir": "source/python",
+  "author": "",
+  "license": "",
+  "license-file": "",
+  "components": {
+    "9ca106c5-1543-4405-a0cd-1b6ff6191bb2": {
+      "name": "Sample collector",
+      "description": "",
+      "component-type": "python",
+      "modulename": "sample_collector_1",
+      "parameter-ui-type": "json",
+      "parameter-ui": "parameter_ui/sample_collector_1/custom_ui.json"
+    },
+    "ccacd2ed-b829-45cf-8b2c-f54f6a5e84b3": {
+      "name": "Sample collector",
+      "description": "",
+      "component-type": "python",
+      "modulename": "sample_collector_2",
+      "parameter-ui-type": "json",
+      "parameter-ui": "parameter_ui/sample_collector_2/custom_ui.json"
+    }
+  }
+}
