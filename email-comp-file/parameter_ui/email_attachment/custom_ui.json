@@ -1,26 +1,90 @@
 {
-  "parameter_defines": [
-    {
-      "name": "interval_ms",
-      "label": "Interval(ms)",
-      "type": "number",
-      "require": true,
-      "max": 60000,
-      "default": 1000,
-      "layout": {
-        "col": 2
-      }
-    },
-    {
-      "name": "diff",
-      "label": "Increase amount",
-      "type": "number",
-      "require": true,
-      "max": 1000,
-      "default": 1,
-      "layout": {
-        "col": 4
-      }
-    }
-  ]
+    "window_size": "middle",
+    "parameter_defines": [
+        {
+            "name": "smtphost",
+            "label": "SMTP Host",
+            "type": "string",
+            "require": true,
+            "max": 256
+        },
+        {
+            "name": "smtpport",
+            "label": "SMTP Port",
+            "type": "number",
+            "max": 65535,
+            "min": 1,
+            "default": 587,
+            "require": true
+        },
+        {
+            "name": "smtpusername",
+            "label": "SMTP User",
+            "type": "string",
+            "require": true,
+            "max": 256
+        },
+        {
+            "name": "smtppassword",
+            "label": "SMTP Password",
+            "type": "string",
+            "require": true,
+            "max": 256
+        },
+        {
+            "name": "timeout",
+            "label": "Timeout (seconds)",
+            "type": "number",
+            "require": true,
+            "max": 256,
+            "min": 1,
+            "default": 5
+        },
+        {
+            "name": "fromaddress",
+            "label": "From",
+            "type": "string",
+            "require": true,
+            "max": 256
+        },
+        {
+            "name": "toaddress",
+            "label": "To (comma-separated)",
+            "type": "string",
+            "require": true,
+            "max": 512
+        },
+        {
+            "name": "subjectemail",
+            "label": "Subject",
+            "type": "string",
+            "require": true,
+            "max": 256
+        },
+        {
+            "name": "bodyemail",
+            "label": "Message Body",
+            "type": "string",
+            "require": false,
+            "max": 256
+        },
+        {
+            "name": "rowthreshold",
+            "label": "Row Threshold (0 = trigger only)",
+            "type": "number",
+            "require": false,
+            "max": 100000,
+            "min": 0,
+            "default": 0
+        },
+        {
+            "name": "maxbufferrows",
+            "label": "Max Buffer Rows (0 = unlimited)",
+            "type": "number",
+            "require": false,
+            "max": 100000,
+            "min": 0,
+            "default": 0
+        }
+    ]
 }
