@@ -1,147 +1,136 @@
 import smtplib
-import io
-import threading
 import datetime
-from speedbeesynapse.component.base import HiveComponentBase, HiveComponentInfo, DataType, HiveApiError
-from email.mime.application import MIMEApplication
+import os
+import threading
+from speedbeesynapse.component.base import HiveComponentBase, HiveComponentInfo, DataType
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 from email.utils import formatdate
 
 @HiveComponentInfo(
     uuid='a009b7cd-a2bb-438d-a450-b1640b7fa5b3',
     name='Email File From Stream (Dataflow)',
-    inports=2,
+    inports=1,
     outports=1
 )
 class HiveComponent(HiveComponentBase):
-    SMTP_HOST = "smtp.default.host"
-    SMTP_PORT = 587
-    SMTP_USER = "default.user"
-    SMTP_PASSWORD = "default.pass"
-    SMTP_TIMEOUT = 5
-    SMTP_FROM = "default.from"
-    SMTP_TO = "default.to"
-    SMTP_SUBJECT = "default.subject"
-    SMTP_BODY = "default.body"
 
     def main(self, param):
-        self.SMTP_HOST     = param['smtphost']
-        self.SMTP_PORT     = param['smtpport']
-        self.SMTP_USER     = param['smtpusername']
-        self.SMTP_PASSWORD = param['smtppassword']
-        self.SMTP_TIMEOUT  = param['timeout']
-        self.SMTP_FROM     = param['fromaddress']
-        self.SMTP_TO       = param['toaddress']
-        self.SMTP_SUBJECT  = param['subjectemail']
-        self.SMTP_BODY     = param.get('bodyemail', '')
+        smtp_host          = param['smtphost']
+        smtp_port          = param['smtpport']
+        smtp_user          = param['smtpusername']
+        smtp_password      = param['smtppassword']
+        smtp_timeout       = param['timeout']
+        smtp_from          = param['fromaddress']
+        smtp_to            = param['toaddress']
+        smtp_subject       = param['subjectemail']
+        smtp_body          = param.get('bodyemail', '')
+        save_location      = param['savelocation']
+        save_location_cont = param['savelocationcont']
+        section            = param['section']
+        send_hours         = int(param.get('sendhours', 0))
+        send_minutes       = int(param.get('sendminutes', 0))
+        enable_periodic    = bool(param.get('enableperiodic', False))
 
-        self.log.info(f"SMTP_HOST: {self.SMTP_HOST}")
-        self.log.info(f"SMTP_PORT: {self.SMTP_PORT}")
-        self.log.info(f"SMTP_USER: {self.SMTP_USER}")
-        self.log.info(f"SMTP_PASSWORD: {'*' * len(self.SMTP_PASSWORD)}")
-        self.log.info(f"SMTP_TIMEOUT: {self.SMTP_TIMEOUT}")
-        self.log.info(f"SMTP_FROM: {self.SMTP_FROM}")
-        self.log.info(f"SMTP_TO: {self.SMTP_TO}")
-        self.log.info(f"SMTP_SUBJECT: {self.SMTP_SUBJECT}")
-        self.log.info(f"SMTP_BODY: {self.SMTP_BODY}")
+        logclm = self.out_port1.Column('log', DataType.STRING)
+        to_list = [addr.strip() for addr in smtp_to.split(",")]
+        stop_event = threading.Event()
 
-        self.logclm = self.out_port1.Column('log', DataType.STRING)
+        def collect_csvs():
+            """Walk minute folders from (now - timeframe) to now, merge all CSVs."""
+            end_time   = datetime.datetime.now()
+            start_time = end_time - datetime.timedelta(hours=send_hours, minutes=send_minutes)
 
-        # Holds the latest file path received from in_port2
-        path_lock    = threading.Lock()
-        latest_path  = [None]
-        stop_event   = threading.Event()
+            combined_lines = []
+            headers_written = False
 
-        last_send_lock = threading.Lock()
-        last_send_time = [0.0]
-        MIN_SEND_INTERVAL = 1.0
+            current = start_time.replace(second=0, microsecond=0)
+            while current <= end_time:
+                folder = os.path.join(
+                    save_location,
+                    save_location_cont,
+                    section,
+                    current.strftime("%Y%m"),
+                    current.strftime("%d"),
+                    current.strftime("%H"),
+                    current.strftime("%M")
+                )
+                if os.path.isdir(folder):
+                    for fname in sorted(os.listdir(folder)):
+                        if not fname.lower().endswith('.csv'):
+                            continue
+                        fpath = os.path.join(folder, fname)
+                        try:
+                            with open(fpath, 'r', encoding='utf-8') as f:
+                                lines = f.readlines()
+                            if not lines:
+                                continue
+                            if not headers_written:
+                                combined_lines.extend(lines)
+                                headers_written = True
+                            else:
+                                combined_lines.extend(lines[1:])  # skip header row
+                        except Exception as e:
+                            self.log.warning(f"Could not read {fpath}: {e}")
+                current += datetime.timedelta(minutes=1)
 
-        to_list = [addr.strip() for addr in self.SMTP_TO.split(",")]
+            return ''.join(combined_lines)
 
-        def safe_log_insert(message, timestamp):
-            try:
-                self.logclm.insert(message, timestamp)
-            except Exception as log_err:
-                self.log.warning(f"logclm.insert failed: {log_err}")
+        def send_email(trigger_timestamp):
+            self.log.info("Collecting CSVs...")
+            csv_content = collect_csvs()
 
-        def send_email(file_path, trigger_timestamp):
-            self.log.info(f"Reading file: {file_path}")
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    file_content = f.read()
-            except Exception as e:
-                self.log.error(f"Failed to read file '{file_path}': {e}")
-                safe_log_insert(f"File read FAILED: {e}", trigger_timestamp)
+            if not csv_content.strip():
+                self.log.warning("No CSV data found in time range — skipping send.")
+                logclm.insert("No data found — email skipped", trigger_timestamp)
                 return
 
-            self.log.info(f"Sending email with file: {file_path}")
+            filename = f'{section}_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+
             try:
-                filename = f'data_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
-
                 msg = MIMEMultipart()
-                msg['From']    = self.SMTP_FROM
-                msg['To']      = self.SMTP_TO
+                msg['From']    = smtp_from
+                msg['To']      = smtp_to
                 msg['Date']    = formatdate(localtime=True)
-                msg['Subject'] = self.SMTP_SUBJECT
-                msg.attach(MIMEText(self.SMTP_BODY))
+                msg['Subject'] = smtp_subject
+                msg.attach(MIMEText(smtp_body if smtp_body else "Please find the attached CSV data."))
 
-                part = MIMEApplication(file_content.encode('utf-8'), Name=filename)
+                part = MIMEApplication(csv_content.encode('utf-8'), Name=filename)
                 part['Content-Disposition'] = f'attachment; filename="{filename}"'
                 msg.attach(part)
 
-                server = smtplib.SMTP(self.SMTP_HOST, self.SMTP_PORT, timeout=self.SMTP_TIMEOUT)
+                server = smtplib.SMTP(smtp_host, smtp_port, timeout=smtp_timeout)
                 try:
                     server.starttls()
-                    server.login(self.SMTP_USER, self.SMTP_PASSWORD)
-                    server.sendmail(self.SMTP_FROM, to_list, msg.as_string())
+                    server.login(smtp_user, smtp_password)
+                    server.sendmail(smtp_from, to_list, msg.as_string())
                 finally:
                     server.quit()
 
-                self.log.info(f"Email sent successfully with file: {file_path}")
-                safe_log_insert(f"Email sent: {file_path}", trigger_timestamp)
+                self.log.info(f"Email sent: {filename}")
+                logclm.insert(f"Email sent: {filename}", trigger_timestamp)
 
             except Exception as e:
-                self.log.error(f"Failed to send email, data discarded: {e}")
-                safe_log_insert(f"Email FAILED: {e}", trigger_timestamp)
+                self.log.error(f"Failed to send email: {e}")
+                logclm.insert(f"Email FAILED: {e}", trigger_timestamp)
 
-        def try_flush(trigger_timestamp):
-            now = datetime.datetime.now().timestamp()
+        def periodic_sender():
+            interval_seconds = (send_hours * 3600) + (send_minutes * 60)
+            if interval_seconds <= 0:
+                self.log.warning("Periodic sending enabled but interval is 0 — skipping.")
+                return
+            while self.is_runnable() and not stop_event.is_set():
+                stop_event.wait(timeout=interval_seconds)
+                if self.is_runnable() and not stop_event.is_set():
+                    self.log.info("Periodic send triggered.")
+                    send_email(int(datetime.datetime.now().timestamp() * 1000))
 
-            with last_send_lock:
-                if now - last_send_time[0] < MIN_SEND_INTERVAL:
-                    self.log.warning("Burst trigger ignored — too soon after last send.")
-                    return False
-                last_send_time[0] = now
-
-            with path_lock:
-                path = latest_path[0]
-
-            if not path:
-                self.log.warning("Trigger fired but no file path received yet — skipping.")
-                with last_send_lock:
-                    last_send_time[0] = 0.0
-                return False
-
-            send_email(path, trigger_timestamp)
-            return True
-
-        def path_reader():
-            with self.in_port2.ContinuousReader(start=self.get_timestamp()) as reader:
-                while self.is_runnable() and not stop_event.is_set():
-                    window_data = reader.read()
-                    if not window_data:
-                        continue
-
-                    for record in window_data.records:
-                        for cv in record.data:
-                            if cv.value:
-                                with path_lock:
-                                    latest_path[0] = cv.value
-                                self.log.info(f"Latest file path updated: {cv.value}")
-
-        path_thread = threading.Thread(target=path_reader, daemon=True)
-        path_thread.start()
+        if enable_periodic:
+            periodic_thread = threading.Thread(target=periodic_sender, daemon=True)
+            periodic_thread.start()
+        else:
+            periodic_thread = None
 
         try:
             with self.in_port1.ContinuousReader(start=self.get_timestamp()) as reader:
@@ -154,13 +143,11 @@ class HiveComponent(HiveComponentBase):
                         for cv in record.data:
                             if cv.value:
                                 self.log.info(f"Trigger received: {cv.value}")
-                                try_flush(record.timestamp)
-
+                                send_email(record.timestamp)
         finally:
             stop_event.set()
-            path_thread.join(timeout=5)
-            if path_thread.is_alive():
-                self.log.warning("Path reader thread did not stop cleanly within timeout.")
+            if periodic_thread and periodic_thread.is_alive():
+                periodic_thread.join(timeout=5)
 
     def notify_stop(self):
         pass

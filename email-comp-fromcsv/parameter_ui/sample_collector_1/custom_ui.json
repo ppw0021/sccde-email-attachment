@@ -67,6 +67,55 @@
             "type": "string",
             "require": false,
             "max": 256
+        },
+        {
+            "name": "savelocation",
+            "label": "Save Location",
+            "type": "string",
+            "require": true,
+            "max": 512,
+            "placeholder": "C:\\ProgramData\\SALTYSTER\\SpeeDBeeSynapse\\projects\\project1"
+        },
+        {
+            "name": "savelocationcont",
+            "label": "Save Location Cont",
+            "type": "string",
+            "require": true,
+            "max": 256,
+            "placeholder": "data"
+        },
+        {
+            "name": "section",
+            "label": "Section",
+            "type": "string",
+            "require": true,
+            "max": 256,
+            "placeholder": "SectionTest"
+        },
+        {
+            "name": "sendhours",
+            "label": "Send Interval - Hours",
+            "type": "number",
+            "require": false,
+            "min": 0,
+            "max": 23,
+            "default": 0
+        },
+        {
+            "name": "sendminutes",
+            "label": "Send Interval - Minutes",
+            "type": "number",
+            "require": false,
+            "min": 0,
+            "max": 59,
+            "default": 0
+        },
+        {
+            "name": "enableperiodic",
+            "label": "Enable Periodic Sending",
+            "type": "boolean",
+            "require": false,
+            "default": false
         }
     ]
 }
