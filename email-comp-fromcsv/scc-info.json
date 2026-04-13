@@ -1,0 +1,20 @@
+{
+  "package-name": "Email attachment (from CSV)",
+  "package-version": "6.9",
+  "package-uuid": "3023b2d4-fc8c-416d-9932-90a429d75c53",
+  "package-description": "Email from ",
+  "python-components-source-dir": "source/python",
+  "author": "",
+  "license": "",
+  "license-file": "",
+  "components": {
+    "a009b7cd-a2bb-438d-a450-b1640b7fa5b3": {
+      "name": "Email File From Stream (Dataflow)",
+      "description": "",
+      "component-type": "python",
+      "modulename": "sample_collector_1",
+      "parameter-ui-type": "json",
+      "parameter-ui": "parameter_ui/sample_collector_1/custom_ui.json"
+    }
+  }
+}
