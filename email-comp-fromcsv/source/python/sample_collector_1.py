@@ -31,7 +31,7 @@ class HiveComponent(HiveComponentBase):
         section            = param['section']
         send_hours         = int(param.get('sendhours', 0))
         send_minutes       = int(param.get('sendminutes', 0))
-        enable_periodic    = bool(param.get('enableperiodic', False))
+        enable_periodic    = int(param.get('enableperiodic', 0)) == 1
 
         logclm = self.out_port1.Column('log', DataType.STRING)
         to_list = [addr.strip() for addr in smtp_to.split(",")]
