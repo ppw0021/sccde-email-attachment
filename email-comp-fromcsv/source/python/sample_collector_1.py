@@ -1,4 +1,5 @@
 import smtplib
+import socket
 import datetime
 import os
 import threading
@@ -102,7 +103,8 @@ class HiveComponent(HiveComponentBase):
                 msg.attach(part)
 
                 source = (smtp_bind_address, 0) if smtp_bind_address else None
-                server = smtplib.SMTP(smtp_host, smtp_port, timeout=smtp_timeout, source_address=source)
+                resolved_host = socket.gethostbyname(smtp_host) if smtp_bind_address else smtp_host
+                server = smtplib.SMTP(resolved_host, smtp_port, timeout=smtp_timeout, source_address=source)
                 try:
                     server.starttls()
                     server.login(smtp_user, smtp_password)
