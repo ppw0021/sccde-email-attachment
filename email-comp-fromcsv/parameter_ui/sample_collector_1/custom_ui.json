@@ -94,20 +94,11 @@
         },
         {
             "name": "sendhours",
-            "label": "Send Interval - Hours",
+            "label": "Window / Send Interval (Hours)",
             "type": "number",
             "require": false,
             "min": 0,
             "max": 23,
-            "default": 0
-        },
-        {
-            "name": "sendminutes",
-            "label": "Send Interval - Minutes",
-            "type": "number",
-            "require": false,
-            "min": 0,
-            "max": 59,
             "default": 0
         },
         {
