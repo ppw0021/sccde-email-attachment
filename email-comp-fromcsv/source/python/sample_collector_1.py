@@ -1,5 +1,4 @@
 import smtplib
-import socket
 import datetime
 import os
 import threading
@@ -23,7 +22,6 @@ class HiveComponent(HiveComponentBase):
         smtp_user          = param['smtpusername']
         smtp_password      = param['smtppassword']
         smtp_timeout       = param['timeout']
-        smtp_bind_address  = param.get('bindaddress', '').strip() or None
         smtp_from          = param['fromaddress']
         smtp_to            = param['toaddress']
         smtp_subject       = param['subjectemail']
@@ -58,6 +56,7 @@ class HiveComponent(HiveComponentBase):
                     current.strftime("%H"),
                     current.strftime("%M")
                 )
+                self.log.info(f"Checking: {folder}")
                 if os.path.isdir(folder):
                     for fname in sorted(os.listdir(folder)):
                         if not fname.lower().endswith('.csv'):
@@ -102,9 +101,7 @@ class HiveComponent(HiveComponentBase):
                 part['Content-Disposition'] = f'attachment; filename="{filename}"'
                 msg.attach(part)
 
-                source = (smtp_bind_address, 0) if smtp_bind_address else None
-                resolved_host = socket.gethostbyname(smtp_host) if smtp_bind_address else smtp_host
-                server = smtplib.SMTP(resolved_host, smtp_port, timeout=smtp_timeout, source_address=source)
+                server = smtplib.SMTP(smtp_host, smtp_port, timeout=smtp_timeout)
                 try:
                     server.starttls()
                     server.login(smtp_user, smtp_password)
