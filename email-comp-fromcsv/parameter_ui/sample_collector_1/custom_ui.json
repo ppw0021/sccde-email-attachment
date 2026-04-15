@@ -121,9 +121,11 @@
         {
             "name": "enableperiodic",
             "label": "Enable Periodic Sending",
-            "type": "boolean",
+            "type": "number",
             "require": false,
-            "default": false
+            "min": 0,
+            "max": 1,
+            "default": 0
         }
     ]
 }
