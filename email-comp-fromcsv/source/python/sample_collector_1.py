@@ -22,6 +22,7 @@ class HiveComponent(HiveComponentBase):
         smtp_user          = param['smtpusername']
         smtp_password      = param['smtppassword']
         smtp_timeout       = param['timeout']
+        smtp_bind_address  = param.get('bindaddress', '').strip() or None
         smtp_from          = param['fromaddress']
         smtp_to            = param['toaddress']
         smtp_subject       = param['subjectemail']
@@ -100,7 +101,8 @@ class HiveComponent(HiveComponentBase):
                 part['Content-Disposition'] = f'attachment; filename="{filename}"'
                 msg.attach(part)
 
-                server = smtplib.SMTP(smtp_host, smtp_port, timeout=smtp_timeout)
+                source = (smtp_bind_address, 0) if smtp_bind_address else None
+                server = smtplib.SMTP(smtp_host, smtp_port, timeout=smtp_timeout, source_address=source)
                 try:
                     server.starttls()
                     server.login(smtp_user, smtp_password)

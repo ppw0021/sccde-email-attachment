@@ -2,6 +2,14 @@
     "window_size": "middle",
     "parameter_defines": [
         {
+            "name": "bindaddress",
+            "label": "Bind Address (optional)",
+            "type": "string",
+            "require": false,
+            "max": 64,
+            "placeholder": "e.g. 192.168.1.10 for eth0"
+        },
+        {
             "name": "smtphost",
             "label": "SMTP Host",
             "type": "string",
