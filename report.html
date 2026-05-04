@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email File From Stream (Dataflow)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      line-height: 1.65;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      color: #fff;
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 1.9rem; font-weight: 700; }
+    header p { margin-top: .5rem; opacity: .7; font-size: .95rem; }
+
+    main { max-width: 800px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    section { margin-bottom: 2.5rem; }
+
+    h2 {
+      font-size: 1.2rem;
+      color: #0f3460;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: .4rem;
+      margin-bottom: 1rem;
+    }
+
+    p { margin-bottom: .8rem; font-size: .95rem; }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    }
+    thead tr { background: #0f3460; color: #fff; }
+    th {
+      text-align: left;
+      padding: .7rem 1rem;
+      font-weight: 600;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    td { padding: .65rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+    code {
+      font-family: monospace;
+      font-size: .85em;
+      background: #f1f5f9;
+      border-radius: 3px;
+      padding: .05em .35em;
+    }
+
+    .group-header td {
+      background: #e8edf5;
+      color: #0f3460;
+      font-weight: 700;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: .5rem 1rem;
+    }
+
+    footer {
+      text-align: center;
+      color: #94a3b8;
+      font-size: .8rem;
+      padding: 1.5rem;
+      border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Email File From Stream (Dataflow)</h1>
+  <p>SpeedBee Synapse Component Reference</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>What This Component Does</h2>
+    <div class="card">
+      <p>
+        This component collects CSV files that have been saved to disk by the Synapse pipeline
+        and sends them as a single email attachment. When triggered, it looks back through a
+        configured number of hours worth of saved files, merges them all into one CSV, and
+        emails it to the specified recipients.
+      </p>
+      <p>
+        It can be triggered manually by an upstream signal in the pipeline, or it can run on
+        a schedule automatically sending the merged file at a regular interval without any
+        external trigger needed.
+      </p>
+      <p style="margin-bottom:0">
+        If no data files are found in the time window, the component skips the send and logs
+        a message instead.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Parameters</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:30%">Parameter</th>
+          <th>What it does</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr class="group-header"><td colspan="2">SMTP Server</td></tr>
+
+        <tr>
+          <td><code>smtphost</code></td>
+          <td>The address of the mail server used to send the email. For example, <code>smtp.office365.com</code> or <code>smtp.gmail.com</code>.</td>
+        </tr>
+        <tr>
+          <td><code>smtpport</code></td>
+          <td>The port on the mail server to connect to. The default is <code>587</code>, which is the standard port for secure STARTTLS connections.</td>
+        </tr>
+        <tr>
+          <td><code>smtpusername</code></td>
+          <td>The username used to log in to the mail server. Usually the sender email address.</td>
+        </tr>
+        <tr>
+          <td><code>smtppassword</code></td>
+          <td>The password for the mail server account. This is never shown in logs.</td>
+        </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td>How many seconds to wait when connecting to the mail server before giving up. The default is 5 seconds.</td>
+        </tr>
+
+        <tr class="group-header"><td colspan="2">Email Content</td></tr>
+
+        <tr>
+          <td><code>fromaddress</code></td>
+          <td>The email address the message will be sent from.</td>
+        </tr>
+        <tr>
+          <td><code>toaddress</code></td>
+          <td>The recipient email address. Multiple recipients can be listed separated by commas.</td>
+        </tr>
+        <tr>
+          <td><code>subjectemail</code></td>
+          <td>The subject line of the email.</td>
+        </tr>
+        <tr>
+          <td><code>bodyemail</code></td>
+          <td>The body text of the email. If left blank, a default message is used. The CSV file is always included as an attachment regardless of what the body says.</td>
+        </tr>
+
+        <tr class="group-header"><td colspan="2">File Location</td></tr>
+
+        <tr>
+          <td><code>savelocation</code></td>
+          <td>The root folder on disk where the component looks for saved CSV files. This should point to the base directory used by the upstream data saving component.</td>
+        </tr>
+        <tr>
+          <td><code>savelocationcont</code></td>
+          <td>A subfolder name appended to the save location path. Used to organise files within the root folder.</td>
+        </tr>
+        <tr>
+          <td><code>section</code></td>
+          <td>A label identifying this data source within the folder structure. It is also used as the prefix for the attachment filename.</td>
+        </tr>
+
+        <tr class="group-header"><td colspan="2">Scheduling</td></tr>
+
+        <tr>
+          <td><code>sendhours</code></td>
+          <td>How many hours back from the current time to look when collecting CSV files. For example, a value of <code>1</code> means the component collects all files saved in the last hour. This same value is also used as the interval when periodic sending is enabled.</td>
+        </tr>
+        <tr>
+          <td><code>enableperiodic</code></td>
+          <td>Set to <code>1</code> to have the component send automatically on a repeating schedule without needing a trigger signal. Set to <code>0</code> to only send when a trigger arrives from upstream. The repeat interval is controlled by <code>sendhours</code>.</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>Email File From Stream (Dataflow) &nbsp;|&nbsp; SpeedBee Synapse</footer>
+
+</body>
+</html>
