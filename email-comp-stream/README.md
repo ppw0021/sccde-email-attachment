@@ -2,14 +2,9 @@
 
 A SpeedBee Synapse dataflow component that collects streaming data into an in-memory CSV buffer and sends it as an email attachment, either on demand via a trigger signal or automatically when a row count threshold is reached.
 
-Two registered variants of this component exist:
-
 | Name | UUID |
 |---|---|
 | Email Export Attachment (Dataflow) | `6e56afe5-c2c9-49f1-9b71-1220e7d4add9` |
-| send_email_file | `043875b0-8129-4083-8f40-44a7bbbcec50` |
-
-Both variants are functionally identical — only the UUID and display name differ.
 
 ---
 
