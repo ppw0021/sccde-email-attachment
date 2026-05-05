@@ -1,20 +1,20 @@
 {
-  "package-name": "Email attachment (from CSV)",
-  "package-version": "6.9",
+  "package-name": "Email Attachment from CSV",
+  "package-version": "0.1.0",
   "package-uuid": "3023b2d4-fc8c-416d-9932-90a429d75c53",
-  "package-description": "Email from ",
+  "package-description": "This package contains a component that collects CSV files from a time-partitioned directory and sends them as a merged email attachment.",
   "python-components-source-dir": "source/python",
-  "author": "",
+  "author": "Declan Ross",
   "license": "",
   "license-file": "",
   "components": {
     "a009b7cd-a2bb-438d-a450-b1640b7fa5b3": {
-      "name": "Email File From Stream (Dataflow)",
-      "description": "",
+      "name": "Email Attachment from CSV (Dataflow)",
+      "description": "Walks a time-partitioned directory for CSV files, merges them into a single attachment, and emails it. Triggered by a signal on PORT1 or an optional periodic schedule.",
       "component-type": "python",
-      "modulename": "sample_collector_1",
+      "modulename": "email_from_csv",
       "parameter-ui-type": "json",
-      "parameter-ui": "parameter_ui/sample_collector_1/custom_ui.json"
+      "parameter-ui": "parameter_ui/email_from_csv/custom_ui.json"
     }
   }
 }

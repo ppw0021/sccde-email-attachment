@@ -1,8 +1,8 @@
 {
-  "package-name": "Email attachment",
+  "package-name": "Email Attachment from Stream",
   "package-version": "0.1.0",
   "package-uuid": "9e007e81-bb93-416c-bda7-3343938d2a97",
-  "package-description": "This package contains components that are capable of sending emails ",
+  "package-description": "This package contains a component that collects a live data stream into an in-memory CSV buffer and emails it as an attachment.",
   "python-components-source-dir": "source/python",
   "author": "Declan Ross",
   "license": "",
@@ -10,7 +10,7 @@
   "components": {
     "6e56afe5-c2c9-49f1-9b71-1220e7d4add9": {
       "name": "Email Export Attachment (Dataflow)",
-      "description": "This component exports the CSV columns recieved in PORT2, when PORT1 is triggered.",
+      "description": "Collects live data rows from PORT2 into an in-memory CSV buffer and sends them as an email attachment when PORT1 is triggered or a row threshold is reached.",
       "component-type": "python",
       "modulename": "email_attachment",
       "parameter-ui-type": "json",

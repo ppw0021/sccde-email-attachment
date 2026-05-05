@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Email File From Stream (Dataflow)</title>
+  <title>Email Export Attachment (Dataflow)</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -95,7 +95,7 @@
 <body>
 
 <header>
-  <h1>Email File From Stream (Dataflow)</h1>
+  <h1>Email Export Attachment (Dataflow)</h1>
   <p>SpeedBee Synapse Component Reference</p>
 </header>
 
@@ -105,19 +105,18 @@
     <h2>What This Component Does</h2>
     <div class="card">
       <p>
-        This component collects CSV files that have been saved to disk by the Synapse pipeline
-        and sends them as a single email attachment. When triggered, it looks back through a
-        configured number of hours worth of saved files, merges them all into one CSV, and
-        emails it to the specified recipients.
+        This component collects live data rows arriving on PORT2 into an in-memory CSV buffer
+        and sends the buffer as an email attachment. The send is triggered by an upstream signal
+        on PORT1, or automatically once the buffer reaches a configured row count threshold.
       </p>
       <p>
-        It can be triggered manually by an upstream signal in the pipeline, or it can run on
-        a schedule automatically sending the merged file at a regular interval without any
-        external trigger needed.
+        The buffer is bounded — if a maximum row count is configured, the oldest rows are dropped
+        when new ones arrive and the buffer is full. A minimum one-second gap between sends
+        prevents burst triggers from firing multiple emails in quick succession.
       </p>
       <p style="margin-bottom:0">
-        If no data files are found in the time window, the component skips the send and logs
-        a message instead.
+        The buffer is only cleared after a successful send. If the send fails, the data is
+        discarded and the error is logged to PORT1 output.
       </p>
     </div>
   </section>
@@ -172,33 +171,18 @@
         </tr>
         <tr>
           <td><code>bodyemail</code></td>
-          <td>The body text of the email. If left blank, a default message is used. The CSV file is always included as an attachment regardless of what the body says.</td>
+          <td>The body text of the email. The CSV data is always included as an attachment regardless of what the body says.</td>
         </tr>
 
-        <tr class="group-header"><td colspan="2">File Location</td></tr>
+        <tr class="group-header"><td colspan="2">Buffer</td></tr>
 
         <tr>
-          <td><code>savelocation</code></td>
-          <td>The root folder on disk where the component looks for saved CSV files. This should point to the base directory used by the upstream data saving component.</td>
+          <td><code>rowthreshold</code></td>
+          <td>The number of buffered rows that triggers an automatic send without needing a PORT1 signal. Set to <code>0</code> to disable threshold-based sending and rely on PORT1 triggers only.</td>
         </tr>
         <tr>
-          <td><code>savelocationcont</code></td>
-          <td>A subfolder name appended to the save location path. Used to organise files within the root folder.</td>
-        </tr>
-        <tr>
-          <td><code>section</code></td>
-          <td>A label identifying this data source within the folder structure. It is also used as the prefix for the attachment filename.</td>
-        </tr>
-
-        <tr class="group-header"><td colspan="2">Scheduling</td></tr>
-
-        <tr>
-          <td><code>sendhours</code></td>
-          <td>How many hours back from the current time to look when collecting CSV files. For example, a value of <code>1</code> means the component collects all files saved in the last hour. This same value is also used as the interval when periodic sending is enabled.</td>
-        </tr>
-        <tr>
-          <td><code>enableperiodic</code></td>
-          <td>Set to <code>1</code> to have the component send automatically on a repeating schedule without needing a trigger signal. Set to <code>0</code> to only send when a trigger arrives from upstream. The repeat interval is controlled by <code>sendhours</code>.</td>
+          <td><code>maxbufferrows</code></td>
+          <td>The maximum number of rows to hold in memory at once. When the buffer is full, the oldest row is dropped to make room for the newest. Set to <code>0</code> for an unlimited buffer.</td>
         </tr>
 
       </tbody>
@@ -207,7 +191,7 @@
 
 </main>
 
-<footer>Email File From Stream (Dataflow) &nbsp;|&nbsp; SpeedBee Synapse</footer>
+<footer>Email Export Attachment (Dataflow) &nbsp;|&nbsp; SpeedBee Synapse</footer>
 
 </body>
 </html>

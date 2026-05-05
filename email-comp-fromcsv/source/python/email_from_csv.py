@@ -12,7 +12,7 @@ from email.utils import formatdate
 
 @HiveComponentInfo(
     uuid='a009b7cd-a2bb-438d-a450-b1640b7fa5b3',
-    name='Email File From Stream (Dataflow)',
+    name='Email Attachment from CSV (Dataflow)',
     inports=1,
     outports=1
 )
